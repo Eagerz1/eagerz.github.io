@@ -97,9 +97,10 @@ function SectionHead({ eyebrow, title, description }: { eyebrow: string; title: 
 }
 
 function ProjectCard({ project, featured = false }: { project: Project; featured?: boolean }) {
+  const [imageFailed, setImageFailed] = useState(false);
   return <article className={'project-card ' + (featured ? 'featured' : '')}>
     <div className={'project-visual accent-' + project.accent}>
-      {project.image ? <img src={project.image} alt={'Screenshot of ' + project.name} loading="lazy" /> : <div className="project-art">
+      {project.image && !imageFailed ? <img src={project.image} alt={'Screenshot of ' + project.name} loading="lazy" onError={() => setImageFailed(true)} /> : <div className="project-art">
         <div className="art-square one" /><div className="art-square two" /><div className="art-square three" />
         <span className="art-mark">EGRZ / DEV</span>
       </div>}
