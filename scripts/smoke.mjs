@@ -68,7 +68,7 @@ try {
     await page.getByPlaceholder(/What should the plugin do/i).fill('A custom Skyblock shop GUI');
     await page.getByPlaceholder(/e.g. \$100/i).fill('$150');
     await page.getByRole('button', { name: /Copy commission brief/i }).click();
-    assert(await page.getByText('Brief copied ✓').count() === 1, 'Copy feedback missing');
+    await page.getByRole('button', { name: /Brief copied/i }).waitFor({ timeout: 5000 });
     const clipboard = await page.evaluate(() => navigator.clipboard.readText());
     assert(clipboard.includes('A custom Skyblock shop GUI') && clipboard.includes('$150'), 'Copied commission brief incomplete');
     await page.screenshot({ path: 'test-screenshots/contact-' + width + '.png', fullPage: true });
