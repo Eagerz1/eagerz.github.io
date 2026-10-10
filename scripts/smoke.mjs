@@ -32,17 +32,28 @@ try {
   await mkdir('test-screenshots', { recursive: true });
 
   for (const width of [1440, 390]) {
-    const context = await browser.newContext({
-      viewport: { width, height: 900 },
-      permissions: ['clipboard-read', 'clipboard-write'],
+    const context = await browser.newContext({ viewport: { width, height: 900 } });
+    // Mock the OS clipboard: validate the generated message without depending on CI clipboard permissions.
+    await context.addInitScript(() => {
+      let copiedText = '';
+      Object.defineProperty(navigator, 'clipboard', {
+        configurable: true,
+        value: {
+          writeText: async text => { copiedText = text; },
+          readText: async () => copiedText,
+        },
+      });
     });
     const page = await context.newPage();
+    page.setDefaultTimeout(8000);
+    page.setDefaultNavigationTimeout(15000);
+    console.log('Testing viewport: ' + width);
     const errors = [];
     page.on('pageerror', err => errors.push(err.message));
     await page.goto(base + '/#/home', { waitUntil: 'domcontentloaded' });
     await page.locator('h1').getByText(/BUILD A SERVER/i).waitFor();
     assert((await page.title()).includes('Home'), 'Home document title missing');
-    await page.screenshot({ path: 'test-screenshots/home-' + width + '.png', fullPage: true });
+    await page.screenshot({ path: 'test-screenshots/home-' + width + '.png', fullPage: true, timeout: 15000 });
     const nav = page.locator('.main-nav');
     if (width < 700) {
       await page.getByRole('button', { name: 'Open menu' }).click();
@@ -71,7 +82,7 @@ try {
     await page.getByRole('button', { name: /Brief copied/i }).waitFor({ timeout: 5000 });
     const clipboard = await page.evaluate(() => navigator.clipboard.readText());
     assert(clipboard.includes('A custom Skyblock shop GUI') && clipboard.includes('$150'), 'Copied commission brief incomplete');
-    await page.screenshot({ path: 'test-screenshots/contact-' + width + '.png', fullPage: true });
+    await page.screenshot({ path: 'test-screenshots/contact-' + width + '.png', fullPage: true, timeout: 15000 });
     assert(errors.length === 0, 'Browser errors at ' + width + 'px: ' + errors.join('; '));
     await context.close();
     console.log('PASS: navigation, routes, projects, contact and viewport ' + width);
