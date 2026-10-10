@@ -1,9 +1,6 @@
 name: Portfolio verification
 
 on:
-  push:
-    branches:
-      - portfolio-five-page-2026
   pull_request:
     branches:
       - main
